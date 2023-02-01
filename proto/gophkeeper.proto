@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package gophkeeper;
+
+option go_package = "gophkeeper/proto";
+
+import "google/protobuf/empty.proto";
+
+message LoginRequest {
+  string login = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string authToken = 1;
+}
+
+message CheckAuthResponse {
+  string message = 1;
+}
+
+message VaultCreateRequest {
+  bytes vault = 1;
+}
+
+message VaultCreateResponse {
+  string id = 1;
+}
+
+message VaultUpdateRequest {
+  string id = 1;
+  bytes vault = 2;
+  int32 version = 3;
+}
+
+message VaultUpdateResponse {
+  int32 version = 3;
+}
+
+message VaultDeleteRequest {
+  string id = 1;
+  int32 version = 2;
+}
+
+message VaultSyncRequest {
+  message VaultVersion {
+    string id = 1;
+    int32 version = 2;
+  }
+
+  repeated VaultVersion vault_versions = 1;
+}
+
+message VaultSyncResponse {
+  message Vault {
+    string id = 1;
+    bytes vault = 2;
+    int32 version = 3;
+    bool is_deleted = 4;
+  }
+
+  repeated Vault updated_vaults = 1;
+}
+
+service Gophkeeper {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc CheckAuth(google.protobuf.Empty) returns (CheckAuthResponse);
+
+  rpc VaultCreate(VaultCreateRequest) returns (VaultCreateResponse);
+  rpc VaultUpdate(VaultUpdateRequest) returns (VaultUpdateResponse);
+  rpc VaultDelete(VaultDeleteRequest) returns (google.protobuf.Empty);
+  rpc VaultSync(VaultSyncRequest) returns (VaultSyncResponse);
+}
+
