@@ -1,25 +1,32 @@
 package command
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/shreyner/gophkeeper/internal/client/app"
-	"github.com/shreyner/gophkeeper/internal/client/vaultclient"
-	"golang.org/x/net/context"
+	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultclient"
+	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultcrypt"
+	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultsync"
 )
 
 type LoginCommand struct {
-	app     *app.App
-	vclient *vaultclient.Service
+	vclient    *vaultclient.Client
+	vaultCrypt *vaultcrypt.VaultCrypt
+	vsync      *vaultsync.VaultSync
 }
 
-func NewLoginCommand(app *app.App, vclient *vaultclient.Service) *LoginCommand {
-	loginCommand := LoginCommand{
-		app:     app,
-		vclient: vclient,
+func NewLoginCommand(
+	vclient *vaultclient.Client,
+	vaultCrypt *vaultcrypt.VaultCrypt,
+	vsync *vaultsync.VaultSync,
+) *LoginCommand {
+	command := LoginCommand{
+		vclient:    vclient,
+		vaultCrypt: vaultCrypt,
+		vsync:      vsync,
 	}
 
-	return &loginCommand
+	return &command
 }
 
 func (c *LoginCommand) Run(ctx context.Context, args []string) {
@@ -39,6 +46,20 @@ func (c *LoginCommand) Run(ctx context.Context, args []string) {
 
 	if err != nil {
 		fmt.Println(err)
+		return
+	}
+
+	err = c.vaultCrypt.SetMasterPassword(login, password)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = c.vsync.Sync()
+
+	if err != nil {
+		fmt.Println("Error first sync storage: ", err)
 		return
 	}
 }

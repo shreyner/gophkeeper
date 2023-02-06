@@ -4,9 +4,10 @@ import (
 	"fmt"
 	logStd "log"
 
-	"github.com/shreyner/gophkeeper/internal/pgk/logger"
-	"github.com/shreyner/gophkeeper/internal/server"
 	"go.uber.org/zap"
+
+	"github.com/shreyner/gophkeeper/internal/server"
+	"github.com/shreyner/gophkeeper/internal/server/pgk/logger"
 )
 
 func main() {

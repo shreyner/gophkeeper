@@ -5,18 +5,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/shreyner/gophkeeper/internal/pgk/stoken"
 	"github.com/shreyner/gophkeeper/internal/server/auth"
 	"github.com/shreyner/gophkeeper/internal/server/database"
 	interceptor_auth "github.com/shreyner/gophkeeper/internal/server/interceptor/auth"
+	"github.com/shreyner/gophkeeper/internal/server/pgk/grcserver"
+	"github.com/shreyner/gophkeeper/internal/server/pgk/stoken"
 	"github.com/shreyner/gophkeeper/internal/server/rpchandlers"
 	"github.com/shreyner/gophkeeper/internal/server/user"
 	"github.com/shreyner/gophkeeper/internal/server/vault"
 	pb "github.com/shreyner/gophkeeper/proto"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
-
-	"github.com/shreyner/gophkeeper/internal/pgk/grcserver"
 )
 
 func NewGophKeeperServer(logger *zap.Logger) error {
