@@ -1,11 +1,17 @@
 package grcserver
 
 import (
+	"context"
 	"net"
 
 	"go.uber.org/zap"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	"github.com/shreyner/gophkeeper/pkg/server"
+)
+
+var (
+	_ server.Server = (*GRPCServer)(nil)
 )
 
 type GRPCServer struct {
@@ -35,13 +41,15 @@ func NewGRPCServer(log *zap.Logger, address string, interceptors ...grpc.UnarySe
 	return &grcServer, nil
 }
 
-func (s *GRPCServer) Start() {
+func (s *GRPCServer) Start() error {
 	go func() {
 		s.log.Info("gRPC server listen on", zap.String("addr", s.listen.Addr().String()))
 		defer close(s.errors)
 
 		s.errors <- s.Server.Serve(s.listen)
 	}()
+
+	return nil
 }
 
 func (s *GRPCServer) Stop(_ context.Context) error {

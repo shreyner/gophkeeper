@@ -5,12 +5,12 @@ import (
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/google/uuid"
+	"github.com/shreyner/gophkeeper/internal/server/pgk/stoken"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/shreyner/gophkeeper/internal/pgk/stoken"
 	"github.com/shreyner/gophkeeper/internal/server/auth"
 	interceptorauth "github.com/shreyner/gophkeeper/internal/server/interceptor/auth"
 	"github.com/shreyner/gophkeeper/internal/server/vault"
@@ -108,7 +108,8 @@ func (s *GophkeeperServer) VaultCreate(ctx context.Context, in *pb.VaultCreateRe
 	}
 
 	response := pb.VaultCreateResponse{
-		Id: vaultModel.ID.String(),
+		Id:      vaultModel.ID.String(),
+		Version: int32(vaultModel.Version),
 	}
 
 	return &response, nil

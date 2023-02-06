@@ -3,12 +3,11 @@ package interceptor_auth
 import (
 	"context"
 
+	"github.com/shreyner/gophkeeper/internal/server/pgk/stoken"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
-	"github.com/shreyner/gophkeeper/internal/pgk/stoken"
 )
 
 var headerAuthorizeToken = "token"

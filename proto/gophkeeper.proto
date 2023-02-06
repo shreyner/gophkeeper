@@ -25,6 +25,7 @@ message VaultCreateRequest {
 
 message VaultCreateResponse {
   string id = 1;
+  int32 version = 3;
 }
 
 message VaultUpdateRequest {

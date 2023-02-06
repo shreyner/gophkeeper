@@ -5,6 +5,9 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"errors"
+	"fmt"
+
+	"golang.org/x/crypto/scrypt"
 )
 
 var ErrNotSetKey = errors.New("don't set key")
@@ -24,7 +27,7 @@ func New() *VaultCrypt {
 	return &v
 }
 
-func (c *VaultCrypt) SetKey(key []byte) error {
+func (c *VaultCrypt) setKey(key []byte) error {
 	sh := sha256.New()
 	sh.Write(key)
 
@@ -71,4 +74,21 @@ func (c *VaultCrypt) Decrypt(data []byte) ([]byte, error) {
 	}
 
 	return decryptedData, nil
+}
+
+func (c *VaultCrypt) SetMasterPassword(login, password string) error {
+	key, err := scrypt.Key([]byte(password), []byte(login), 1<<15, 8, 1, 32)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	err = c.setKey(key)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

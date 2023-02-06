@@ -83,17 +83,12 @@ func (r *Repository) UpdateVault(ctx context.Context, userID, id uuid.UUID, vaul
 }
 
 func (r *Repository) Delete(ctx context.Context, userID, id uuid.UUID, version int) error {
-	err := r.checkIsExists(ctx, userID, id)
-
-	if err != nil {
-		return err
-	}
-
 	result, err := r.db.ExecContext(
 		ctx,
-		`update vaults set vault = null, is_deleted = true, version = version + 1 where id = $1 and version = $2;`,
+		`update vaults set vault = null, is_deleted = true where id = $1 and version = $2 and user_id = $3;`,
 		id,
 		version,
+		userID,
 	)
 
 	if err != nil {
