@@ -457,7 +457,7 @@ func (s *FileVaultStorage) UploadFile(ctx context.Context, file *os.File) error 
 	return nil
 }
 
-func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, file *os.File) error {
+func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, filePath string) error {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
@@ -476,6 +476,15 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, file *os
 	if model.S3URL == "" || len(data.Key) == 0 {
 		return errors.New("invalid data")
 	}
+
+	file, err := os.Create(filepath.Join(filePath, model.GetFileName()))
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Sync()
+	defer file.Close()
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
@@ -496,8 +505,6 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, file *os
 	if err != nil {
 		return err
 	}
-
-	defer file.Sync()
 
 	return nil
 }
