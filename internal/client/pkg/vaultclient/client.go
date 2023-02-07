@@ -2,6 +2,9 @@ package vaultclient
 
 import (
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
@@ -11,6 +14,8 @@ import (
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultdata"
 	"github.com/shreyner/gophkeeper/proto"
 )
+
+var ServerUploaderHost = "http://localhost:3280"
 
 type Client struct {
 	appState vaultdata.State
@@ -193,4 +198,43 @@ func (s *Client) VaultDelete(ctx context.Context, ID string, version int) error 
 	}
 
 	return nil
+}
+
+func (s *Client) VaultUpload(ctx context.Context, r io.Reader) (string, error) {
+	if s.appState.GetUserToken() == "" {
+		return "", ErrNotAuth
+	}
+
+	//ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+	//defer cancel()
+
+	request, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPut,
+		fmt.Sprintf("%s/upload", ServerUploaderHost),
+		r,
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	request.Header.Set("Authorization", s.appState.GetUserToken())
+	request.Header.Set("Content-Type", "application/octet-stream")
+
+	response, err := http.DefaultClient.Do(request)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer response.Body.Close()
+
+	respBytes, err := io.ReadAll(response.Body)
+
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(respBytes)), nil
 }

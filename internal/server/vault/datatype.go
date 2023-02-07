@@ -13,4 +13,5 @@ type VaultModel struct {
 	Vault     []byte
 	Version   int
 	IsDeleted bool
+	S3        *string
 }

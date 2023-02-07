@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+  s3:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9080:9080"
+    volumes:
+      - ./storage/minio:/data
+    environment:
+      MINIO_ACCESS_KEY: minio_access_key
+      MINIO_SECRET_KEY: minio_secret_key
+    command: server --address 0.0.0.0:9000 --console-address ":9080" /data
+
   pg:
     image: postgres:14.4
     environment:
