@@ -12,17 +12,17 @@ import (
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultsync"
 )
 
-const VaultStorageKind = "site-login"
+const SiteLoginVaultStorageType = "site-login"
 
 var (
 	_ vaultsync.DataSyncer    = (*LoginVaultModel)(nil)
 	_ vaultsync.StorageSyncer = (*LoginVaultStorage)(nil)
 )
 
-var lastIndex uint32 = 0
+var siteLoginLastIndex uint32 = 0
 
-func loadNextIndex() uint32 {
-	return atomic.AddUint32(&lastIndex, 1)
+func siteLoginLoadNextIndex() uint32 {
+	return atomic.AddUint32(&siteLoginLastIndex, 1)
 }
 
 var LoginMetaDataSiteURLKey = "siteURL"
@@ -65,6 +65,10 @@ func (m *LoginVaultModel) GetIsUpdate() bool {
 	return m.IsUpdate
 }
 
+func (m *LoginVaultModel) GetS3URL() string {
+	return ""
+}
+
 func (m *LoginVaultModel) IsNeedSync() bool {
 	return m.IsUpdate || m.IsDelete || m.IsNew // TODO: check
 }
@@ -79,13 +83,13 @@ func (m *LoginVaultModel) GetSite() string {
 	return siteURL
 }
 
-type vaultStored struct {
+type siteLoginVaultStored struct {
 	Data     []byte
 	MetaData map[string]string
 }
 
-func vaultStoredFromModel(model *LoginVaultModel) *vaultStored {
-	v := vaultStored{
+func siteLoginVaultStoredFromModel(model *LoginVaultModel) *siteLoginVaultStored {
+	v := siteLoginVaultStored{
 		Data:     model.Data,
 		MetaData: model.MetaData,
 	}
@@ -95,7 +99,7 @@ func vaultStoredFromModel(model *LoginVaultModel) *vaultStored {
 
 func NewLoginVaultModel() *LoginVaultModel {
 	m := LoginVaultModel{
-		ID: loadNextIndex(),
+		ID: siteLoginLoadNextIndex(),
 
 		MetaData: make(map[string]string),
 
@@ -132,7 +136,7 @@ func NewLoginVaultStorage(crypt *vaultcrypt.VaultCrypt) *LoginVaultStorage {
 }
 
 func (s *LoginVaultStorage) GetKind() string {
-	return VaultStorageKind
+	return SiteLoginVaultStorageType
 }
 
 func (s *LoginVaultStorage) LoadForSync() ([]vaultsync.DataSyncer, error) {
@@ -171,7 +175,7 @@ func (s *LoginVaultStorage) SerializeToVault(data interface{}) ([]byte, error) {
 
 	var buffer bytes.Buffer
 
-	err := gob.NewEncoder(&buffer).Encode(vaultStoredFromModel(siteLoginModel))
+	err := gob.NewEncoder(&buffer).Encode(siteLoginVaultStoredFromModel(siteLoginModel))
 
 	if err != nil {
 		return nil, err
@@ -181,7 +185,7 @@ func (s *LoginVaultStorage) SerializeToVault(data interface{}) ([]byte, error) {
 }
 
 func (s *LoginVaultStorage) DeserializeFromVault(dst []byte) (interface{}, error) {
-	var vStored vaultStored
+	var vStored siteLoginVaultStored
 
 	err := gob.NewDecoder(bytes.NewReader(dst)).Decode(&vStored)
 
@@ -223,8 +227,8 @@ func (s *LoginVaultStorage) ConfirmDeleteAfterSyncByID(model vaultsync.DataSynce
 	return nil
 }
 
-func (s *LoginVaultStorage) CreateDataStorage(externalID string, version int, data interface{}) error {
-	vs, ok := data.(*vaultStored)
+func (s *LoginVaultStorage) CreateDataStorage(externalID string, version int, data interface{}, _ string) error {
+	vs, ok := data.(*siteLoginVaultStored)
 
 	if !ok {
 		return ErrInvalidType
@@ -252,7 +256,7 @@ func (s *LoginVaultStorage) CreateDataStorage(externalID string, version int, da
 }
 
 func (s *LoginVaultStorage) UpdateDataStorage(externalID string, version int, data interface{}) error {
-	vs, ok := data.(*vaultStored)
+	vs, ok := data.(*siteLoginVaultStored)
 
 	if !ok {
 		return ErrInvalidType
@@ -339,7 +343,7 @@ func (s *LoginVaultStorage) Create(data *LoginSecreteData, siteURL string) error
 	newM.SetSite(siteURL)
 
 	s.storage[newM.ID] = newM
-	s.indexIDAndExternalID[newM.ExternalID] = newM.ID
+	//s.indexIDAndExternalID[newM.ExternalID] = newM.ID
 
 	return nil
 }
