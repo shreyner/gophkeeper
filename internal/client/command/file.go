@@ -91,16 +91,7 @@ func (c *FileCommand) RunDownload(ctx context.Context, args []string) {
 		return
 	}
 
-	file, err := os.Create(filePath)
-
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	defer file.Close()
-
-	err = c.fileStorage.DownloadFile(ctx, uint32(ID), file)
+	err = c.fileStorage.DownloadFile(ctx, uint32(ID), filePath)
 
 	if err != nil {
 		fmt.Println(err)
