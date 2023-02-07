@@ -20,11 +20,12 @@ func NewRepository(db *sql.DB) *Repository {
 func (r *Repository) Create(ctx context.Context, vault *VaultModel) error {
 	_, err := r.db.ExecContext(
 		ctx,
-		`insert into vaults (id, user_id, vault, version) values ($1, $2::uuid, $3::bytea, $4);`,
+		`insert into vaults (id, user_id, vault, version, s3) values ($1, $2::uuid, $3::bytea, $4, $5);`,
 		vault.ID,
 		vault.UserID,
 		vault.Vault,
 		vault.Version,
+		vault.S3,
 	)
 
 	if err != nil {
@@ -158,7 +159,7 @@ func (r *Repository) LoadUpdatedVaults(ctx context.Context, userID uuid.UUID, dt
 
 	vaultRows, err := r.db.QueryContext(
 		ctx,
-		`select id, user_id, vault, version, is_deleted from vaults where user_id = $1 and id = any($2);`,
+		`select id, user_id, vault, version, is_deleted, s3 from vaults where user_id = $1 and id = any($2);`,
 		userID,
 		needUpdatedIds,
 	)
@@ -179,6 +180,7 @@ func (r *Repository) LoadUpdatedVaults(ctx context.Context, userID uuid.UUID, dt
 			&vault.Vault,
 			&vault.Version,
 			&vault.IsDeleted,
+			&vault.S3,
 		); err != nil {
 			return nil, err
 		}

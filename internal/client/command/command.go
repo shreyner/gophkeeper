@@ -13,12 +13,12 @@ func NewCommands(
 	vaultCrypt *vaultcrypt.VaultCrypt,
 	vsync *vaultsync.VaultSync,
 	siteLoginStorage *storage.LoginVaultStorage,
+	fileStorage *storage.FileVaultStorage,
 ) []promptcmd.Command {
-
 	loginCommand := NewLoginCommand(vclient, vaultCrypt, vsync)
 	siteLoginCommand := NewSiteLoginCommand(vclient, vaultCrypt, siteLoginStorage)
 	syncCommand := NewSyncCommand(vsync)
-	fileCommand := NewFileCommand(vclient, vaultCrypt)
+	fileCommand := NewFileCommand(vclient, vaultCrypt, fileStorage)
 
 	return []promptcmd.Command{
 		{
@@ -68,10 +68,22 @@ func NewCommands(
 		},
 
 		{
+			Command:     "file",
+			Description: "Download file by ID",
+			Auth:        promptcmd.CommandAuthNeed,
+			Run:         fileCommand.RunView,
+		},
+		{
 			Command:     "file-upload",
 			Description: "Encrypted and upload file to vault",
 			Auth:        promptcmd.CommandAuthNeed,
 			Run:         fileCommand.RunUpload,
+		},
+		{
+			Command:     "file-download",
+			Description: "Download file by ID",
+			Auth:        promptcmd.CommandAuthNeed,
+			Run:         fileCommand.RunDownload,
 		},
 
 		{

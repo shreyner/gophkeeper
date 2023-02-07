@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultdata"
 	"github.com/shreyner/gophkeeper/proto"
@@ -105,11 +106,18 @@ func (s *Client) VaultSync(ctx context.Context, vaultSync []vaultdata.VaultSyncV
 	resultArr := make([]vaultdata.VaultSyncData, 0, len(response.UpdatedVaults))
 
 	for _, v := range response.UpdatedVaults {
+		var s3URL string
+
+		if v.S3 != nil {
+			s3URL = v.S3.Value
+		}
+
 		data := vaultdata.VaultSyncData{
 			ID:        v.Id,
 			Vault:     v.Vault,
 			Version:   int(v.Version),
 			IsDeleted: v.IsDeleted,
+			S3URL:     s3URL,
 		}
 
 		resultArr = append(resultArr, data)
@@ -118,15 +126,22 @@ func (s *Client) VaultSync(ctx context.Context, vaultSync []vaultdata.VaultSyncV
 	return resultArr, nil
 }
 
-func (s *Client) VaultCreate(ctx context.Context, encryptedVault []byte) (*vaultdata.VaultClientSyncResult, error) {
+func (s *Client) VaultCreate(ctx context.Context, encryptedVault []byte, s3URL string) (*vaultdata.VaultClientSyncResult, error) {
 	if s.appState.GetUserToken() == "" {
 		return nil, ErrNotAuth
 	}
 
 	ctxWithMetadata := metadata.NewOutgoingContext(ctx, s.metadata)
 
+	var s3URLRequest *wrapperspb.StringValue
+
+	if s3URL != "" {
+		s3URLRequest = wrapperspb.String(s3URL)
+	}
+
 	request := proto.VaultCreateRequest{
 		Vault: encryptedVault,
+		S3:    s3URLRequest,
 	}
 
 	ctxWithTimeout, cancel := context.WithTimeout(ctxWithMetadata, 30*time.Second)
@@ -205,11 +220,11 @@ func (s *Client) VaultUpload(ctx context.Context, r io.Reader) (string, error) {
 		return "", ErrNotAuth
 	}
 
-	//ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
-	//defer cancel()
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	request, err := http.NewRequestWithContext(
-		ctx,
+		ctxWithTimeout,
 		http.MethodPut,
 		fmt.Sprintf("%s/upload", ServerUploaderHost),
 		r,
@@ -237,4 +252,32 @@ func (s *Client) VaultUpload(ctx context.Context, r io.Reader) (string, error) {
 	}
 
 	return strings.TrimSpace(string(respBytes)), nil
+}
+
+func (s *Client) VaultDownload(ctx context.Context, url string) (io.ReadCloser, error) {
+	if s.appState.GetUserToken() == "" {
+		return nil, ErrNotAuth
+	}
+
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	request, err := http.NewRequestWithContext(
+		ctxWithTimeout,
+		http.MethodGet,
+		url,
+		nil,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := http.DefaultClient.Do(request)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response.Body, nil
 }

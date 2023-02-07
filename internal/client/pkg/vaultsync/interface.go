@@ -8,6 +8,7 @@ type DataSyncer interface {
 	GetVaultID() string
 
 	GetVersion() int
+	GetS3URL() string
 	GetIsNew() bool
 	GetIsDelete() bool
 	GetIsUpdate() bool
@@ -27,7 +28,7 @@ type StorageSyncer interface {
 	ConfirmDeleteAfterSyncByID(data DataSyncer) error
 
 	// For created
-	CreateDataStorage(externalID string, version int, data interface{}) error
+	CreateDataStorage(externalID string, version int, data interface{}, s3URL string) error
 	UpdateDataStorage(externalID string, version int, data interface{}) error
 	DeleteDataStorage(externalID string, version int) error
 

@@ -15,13 +15,14 @@ func NewService(rep *Repository) *Service {
 	return &service
 }
 
-func (s *Service) Create(ctx context.Context, userId uuid.UUID, vault []byte) (*VaultModel, error) {
+func (s *Service) Create(ctx context.Context, userId uuid.UUID, vault []byte, s3URL *string) (*VaultModel, error) {
 	vaultModel := VaultModel{
 		ID:        uuid.New(),
 		UserID:    userId,
 		Vault:     vault,
 		Version:   0,
 		IsDeleted: false,
+		S3:        s3URL,
 	}
 
 	err := s.rep.Create(ctx, &vaultModel)

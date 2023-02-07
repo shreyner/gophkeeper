@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/shreyner/gophkeeper/internal/server/auth"
 	interceptorauth "github.com/shreyner/gophkeeper/internal/server/interceptor/auth"
@@ -100,7 +101,13 @@ func (s *GophkeeperServer) VaultCreate(ctx context.Context, in *pb.VaultCreateRe
 
 	userID := tokenData.ID
 
-	vaultModel, err := s.vaultService.Create(ctx, userID, in.Vault)
+	var s3ulr *string
+
+	if in.S3 != nil {
+		s3ulr = &(in.S3.Value)
+	}
+
+	vaultModel, err := s.vaultService.Create(ctx, userID, in.Vault, s3ulr)
 
 	if err != nil {
 		s.log.Error("can't create vault", zap.Error(err))
@@ -214,11 +221,18 @@ func (s *GophkeeperServer) VaultSync(ctx context.Context, in *pb.VaultSyncReques
 	responseVaults := make([]*pb.VaultSyncResponse_Vault, 0, len(newVaults))
 
 	for _, newVault := range newVaults {
+		var s3Response *wrapperspb.StringValue
+
+		if newVault.S3 != nil {
+			s3Response = wrapperspb.String(*newVault.S3)
+		}
+
 		v := pb.VaultSyncResponse_Vault{
 			Id:        newVault.ID.String(),
 			Vault:     newVault.Vault,
 			Version:   int32(newVault.Version),
 			IsDeleted: newVault.IsDeleted,
+			S3:        s3Response,
 		}
 
 		responseVaults = append(responseVaults, &v)

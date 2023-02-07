@@ -45,11 +45,15 @@ func main() {
 	vcrypt := vaultcrypt.New()
 
 	loginVaultStorage := storage.NewLoginVaultStorage(vcrypt)
+	fileVaultStorage := storage.NewFileVaultStorage(vcrypt, vclient)
 
 	vsync := vaultsync.New(
 		vcrypt,
 		vclient,
-		[]vaultsync.StorageSyncer{loginVaultStorage},
+		[]vaultsync.StorageSyncer{
+			loginVaultStorage,
+			fileVaultStorage,
+		},
 	)
 
 	commands := command.NewCommands(
@@ -57,6 +61,7 @@ func main() {
 		vcrypt,
 		vsync,
 		loginVaultStorage,
+		fileVaultStorage,
 	)
 
 	if err != nil {

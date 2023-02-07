@@ -43,6 +43,7 @@ func New(
 type dataSync struct {
 	typeVaultStorage string
 	vault            DataSyncer
+	s3URL            string
 }
 
 type vaultSyncData struct {
@@ -107,7 +108,7 @@ func (v *VaultSync) createVault(arr []dataSync) error {
 			return err
 		}
 
-		createdInfo, err := v.vclient.VaultCreate(ctx, encrypted)
+		createdInfo, err := v.vclient.VaultCreate(ctx, encrypted, d.s3URL)
 
 		if err != nil {
 			return err
@@ -201,7 +202,7 @@ func (s *VaultSync) createVaultStorage(data []vaultdata.VaultSyncData) error {
 			return err
 		}
 
-		err = storage.CreateDataStorage(datum.ID, datum.Version, d)
+		err = storage.CreateDataStorage(datum.ID, datum.Version, d, datum.S3URL)
 
 		if err != nil {
 			return err
@@ -263,7 +264,6 @@ func (s *VaultSync) Sync() error {
 	ctx := context.Background()
 
 	// First
-
 	newVaultForStorage := make([]dataSync, 0)
 	updateVaultForStorage := make([]dataSync, 0)
 	deleteVaultForStorage := make([]dataSync, 0)
@@ -279,6 +279,7 @@ func (s *VaultSync) Sync() error {
 			d := dataSync{
 				typeVaultStorage: typeVaultStorage,
 				vault:            v,
+				s3URL:            v.GetS3URL(),
 			}
 
 			if v.GetIsNew() {
@@ -328,6 +329,7 @@ func (s *VaultSync) Sync() error {
 			localVaults[v.GetVaultID()] = dataSync{
 				typeVaultStorage: typeVaultStorage,
 				vault:            v,
+				s3URL:            v.GetS3URL(),
 			}
 		}
 	}
