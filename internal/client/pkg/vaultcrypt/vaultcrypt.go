@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"io"
 
 	"golang.org/x/crypto/scrypt"
 )
@@ -74,6 +75,69 @@ func (c *VaultCrypt) Decrypt(data []byte) ([]byte, error) {
 	}
 
 	return decryptedData, nil
+}
+
+func (c *VaultCrypt) EncryptStream(out io.Writer, key []byte) (*cipher.StreamWriter, error) {
+	sh := sha256.New()
+	sh.Write(key)
+
+	hashKey := sh.Sum(nil)
+
+	aesBlock, err := aes.NewCipher(hashKey)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(aesBlock, iv[:])
+
+	//writer := &cipher.StreamWriter{
+	//	S: stream,
+	//	W: out,
+	//}
+
+	//_, err = io.Copy(writer, in)
+	//
+	//if err != nil {
+	//	return err
+	//}
+
+	//return nil
+
+	return &cipher.StreamWriter{
+		S: stream,
+		W: out,
+	}, nil
+}
+
+func (c *VaultCrypt) DecryptStream(in io.Reader, out io.Writer, key []byte) error {
+	sh := sha256.New()
+	sh.Write(key)
+
+	hashKey := sh.Sum(nil)
+
+	aesBlock, err := aes.NewCipher(hashKey)
+
+	if err != nil {
+		return err
+	}
+
+	var iv [aes.BlockSize]byte
+	stream := cipher.NewOFB(aesBlock, iv[:])
+
+	reader := &cipher.StreamReader{
+		S: stream,
+		R: in,
+	}
+
+	_, err = io.Copy(out, reader)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *VaultCrypt) SetMasterPassword(login, password string) error {

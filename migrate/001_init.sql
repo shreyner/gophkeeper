@@ -16,7 +16,8 @@ create table if not exists vaults
         constraint vaults_users_fk references users (id),
     vault bytea,
     version integer default 0 not null,
-    is_deleted bool default false not null
+    is_deleted bool default false not null,
+    s3 varchar
 );
 
 ---- create above / drop below ----

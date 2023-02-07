@@ -18,6 +18,7 @@ func NewCommands(
 	loginCommand := NewLoginCommand(vclient, vaultCrypt, vsync)
 	siteLoginCommand := NewSiteLoginCommand(vclient, vaultCrypt, siteLoginStorage)
 	syncCommand := NewSyncCommand(vsync)
+	fileCommand := NewFileCommand(vclient, vaultCrypt)
 
 	return []promptcmd.Command{
 		{
@@ -65,6 +66,14 @@ func NewCommands(
 			Auth:        promptcmd.CommandAuthNeed,
 			Run:         siteLoginCommand.RunUpdate,
 		},
+
+		{
+			Command:     "file-upload",
+			Description: "Encrypted and upload file to vault",
+			Auth:        promptcmd.CommandAuthNeed,
+			Run:         fileCommand.RunUpload,
+		},
+
 		{
 			Command:     "sync",
 			Description: "Force sync storage",

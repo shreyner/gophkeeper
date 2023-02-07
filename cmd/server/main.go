@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	logStd "log"
 
 	"go.uber.org/zap"
@@ -11,8 +10,6 @@ import (
 )
 
 func main() {
-	fmt.Println("Hello server")
-
 	log, err := logger.InitLogger()
 
 	if err != nil {
