@@ -259,11 +259,8 @@ func (s *Client) VaultDownload(ctx context.Context, url string) (io.ReadCloser, 
 		return nil, ErrNotAuth
 	}
 
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
 	request, err := http.NewRequestWithContext(
-		ctxWithTimeout,
+		ctx,
 		http.MethodGet,
 		url,
 		nil,
