@@ -70,57 +70,6 @@ func (c *FileCommand) RunUpload(ctx context.Context, args []string) {
 		fmt.Println(err)
 		return
 	}
-
-	//reader, writer := io.Pipe()
-	//defer reader.Close()
-	//
-	//w, err := c.vaultCrypt.EncryptStream(writer, []byte("equnPrKfGSYVSRxKNGluRthXe71KQ5q35mTu6QLa"))
-	//
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//
-	//go func() {
-	//	defer writer.Close()
-	//	_, err = io.Copy(w, fileOut)
-	//
-	//	if err != nil {
-	//		fmt.Println("Error: ", err)
-	//	}
-	//}()
-	//
-	//result, err := c.vclient.VaultUpload(ctx, reader)
-	//
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//
-	//fmt.Println(result)
-
-	//body, err := c.vclient.VaultDownload(ctx, "http://127.0.0.1:9000/vault/ZY24ImVBA4ARL0zrCx0b5IR7i_TvtmjG7gk2")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer body.Close()
-	//
-	//r, err := c.vaultCrypt.DecryptStream(body, []byte("equnPrKfGSYVSRxKNGluRthXe71KQ5q35mTu6QLa"))
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//
-	//fileIn, err := os.Create("./decripted.png")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//defer fileIn.Sync()
-	//defer fileIn.Close()
-	//
-	//_, err = io.Copy(fileIn, r)
 }
 
 func (c *FileCommand) RunDownload(ctx context.Context, args []string) {

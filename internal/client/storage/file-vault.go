@@ -12,6 +12,7 @@ import (
 	"sort"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/jaevor/go-nanoid"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultclient"
@@ -476,7 +477,10 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, file *os
 		return errors.New("invalid data")
 	}
 
-	body, err := s.vclient.VaultDownload(ctx, model.S3URL)
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
+	body, err := s.vclient.VaultDownload(ctxWithTimeout, model.S3URL)
 	if err != nil {
 		return err
 	}
@@ -488,9 +492,12 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, file *os
 		return err
 	}
 
-	defer file.Sync()
-
 	_, err = io.Copy(file, r)
+	if err != nil {
+		return err
+	}
+
+	defer file.Sync()
 
 	return nil
 }
