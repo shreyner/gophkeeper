@@ -85,6 +85,12 @@ func NewCommands(
 			Auth:        promptcmd.CommandAuthNeed,
 			Run:         fileCommand.RunDownload,
 		},
+		{
+			Command:     "file-delete",
+			Description: "Delete file by ID",
+			Auth:        promptcmd.CommandAuthNeed,
+			Run:         fileCommand.RunDelete,
+		},
 
 		{
 			Command:     "sync",

@@ -508,3 +508,19 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, filePath
 
 	return nil
 }
+
+func (s *FileVaultStorage) DeleteFile(_ context.Context, ID uint32) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	model, ok := s.storage[ID]
+
+	if !ok {
+		return vaultdata.ErrNotFoundVaultInStorage
+	}
+
+	model.IsUpdate = false
+	model.IsDelete = !model.IsDelete
+
+	return nil
+}

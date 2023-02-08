@@ -98,3 +98,25 @@ func (c *FileCommand) RunDownload(ctx context.Context, args []string) {
 		return
 	}
 }
+
+func (c *FileCommand) RunDelete(ctx context.Context, args []string) {
+	if len(args) < 1 {
+		fmt.Println("incorrect login and password")
+		return
+	}
+
+	fileID := args[0]
+
+	ID, err := strconv.ParseUint(fileID, 10, 32)
+	if err != nil {
+		fmt.Println("Invalid ID")
+		return
+	}
+
+	err = c.fileStorage.DeleteFile(ctx, uint32(ID))
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
