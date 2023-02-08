@@ -117,14 +117,6 @@ func (c *VaultCrypt) DecryptStream(in io.Reader, key []byte) (*cipher.StreamRead
 		S: stream,
 		R: in,
 	}, nil
-
-	//_, err = io.Copy(out, reader)
-	//
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//return nil
 }
 
 func (c *VaultCrypt) SetMasterPassword(login, password string) error {

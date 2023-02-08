@@ -70,7 +70,7 @@ func (m *LoginVaultModel) GetS3URL() string {
 }
 
 func (m *LoginVaultModel) IsNeedSync() bool {
-	return m.IsUpdate || m.IsDelete || m.IsNew // TODO: check
+	return m.IsUpdate // TODO: check
 }
 
 func (m *LoginVaultModel) SetSite(siteURL string) {
