@@ -31,7 +31,19 @@ migrate: .install-migrate
 	### Install swag tool
 	[ -f $(SWAG) ] || GOBIN=$(PROJECT_BIN) go install github.com/swaggo/swag/cmd/swag@latest
 
-
-
 .PHONY: install-tools
 install-tools: .install-linter .install-migrate .install-swag
+
+#go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+#go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+#.PHONY: .install-proto
+#.install-proto:
+#	### INSTALL GOLANGCI-LINT ###
+#	[ -f $(PROJECT_BIN) ] || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.50.0
+#
+#.PHONY: proto
+#proto: .install-proto
+#	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/gophkeeper.proto
+#
+
