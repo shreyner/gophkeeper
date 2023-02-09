@@ -3,6 +3,8 @@ package storage
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
+	"os"
 	"sort"
 	"sync"
 	"sync/atomic"
@@ -124,7 +126,9 @@ type LoginVaultStorage struct {
 	mux sync.RWMutex
 }
 
-func NewLoginVaultStorage(crypt *vaultcrypt.VaultCrypt) *LoginVaultStorage {
+func NewLoginVaultStorage(
+	crypt *vaultcrypt.VaultCrypt,
+) *LoginVaultStorage {
 	s := LoginVaultStorage{
 		crypt: crypt,
 
@@ -133,6 +137,81 @@ func NewLoginVaultStorage(crypt *vaultcrypt.VaultCrypt) *LoginVaultStorage {
 	}
 
 	return &s
+}
+
+type SiteLoginSavedStorage struct {
+	Storage              map[uint32]*LoginVaultModel
+	IndexIDAndExternalID map[string]uint32
+}
+
+func (s *LoginVaultStorage) LoadFromLocalFile(filePathDB string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	var file *os.File
+	var err error
+
+	file, err = os.Open(filePathDB)
+	defer file.Close()
+
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
+		file, err = os.Create(filePathDB)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	savedStorage := SiteLoginSavedStorage{
+		Storage:              make(map[uint32]*LoginVaultModel),
+		IndexIDAndExternalID: make(map[string]uint32),
+	}
+
+	if fileInfo.Size() == 0 {
+		return nil
+	}
+
+	err = gob.NewDecoder(file).Decode(&savedStorage)
+	if err != nil {
+		return err
+	}
+
+	s.storage = savedStorage.Storage
+	s.indexIDAndExternalID = savedStorage.IndexIDAndExternalID
+
+	return nil
+}
+
+func (s *LoginVaultStorage) SaveToFile(filePathDB string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	file, err := os.OpenFile(filePathDB, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Sync()
+	defer file.Close()
+
+	savedStorage := SiteLoginSavedStorage{
+		Storage:              s.storage,
+		IndexIDAndExternalID: s.indexIDAndExternalID,
+	}
+
+	err = gob.NewEncoder(file).Encode(&savedStorage)
+
+	return err
 }
 
 func (s *LoginVaultStorage) GetKind() string {

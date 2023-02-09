@@ -174,6 +174,81 @@ func NewFileVaultStorage(
 	return &s
 }
 
+type FileSavedStorage struct {
+	Storage              map[uint32]*FileVaultModel
+	IndexIDAndExternalID map[string]uint32
+}
+
+func (s *FileVaultStorage) LoadFromLocalFile(filePathDB string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	var file *os.File
+	var err error
+
+	file, err = os.Open(filePathDB)
+	defer file.Close()
+
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+
+		file, err = os.Create(filePathDB)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	savedStorage := FileSavedStorage{
+		Storage:              make(map[uint32]*FileVaultModel),
+		IndexIDAndExternalID: make(map[string]uint32),
+	}
+
+	if fileInfo.Size() == 0 {
+		return nil
+	}
+
+	err = gob.NewDecoder(file).Decode(&savedStorage)
+	if err != nil {
+		return err
+	}
+
+	s.storage = savedStorage.Storage
+	s.indexIDAndExternalID = savedStorage.IndexIDAndExternalID
+
+	return nil
+}
+
+func (s *FileVaultStorage) SaveToFile(filePathDB string) error {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+
+	file, err := os.OpenFile(filePathDB, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+
+	if err != nil {
+		return err
+	}
+
+	defer file.Sync()
+	defer file.Close()
+
+	savedStorage := FileSavedStorage{
+		Storage:              s.storage,
+		IndexIDAndExternalID: s.indexIDAndExternalID,
+	}
+
+	err = gob.NewEncoder(file).Encode(&savedStorage)
+
+	return err
+}
+
 func (s *FileVaultStorage) GetKind() string {
 	return FileVaultStorageType
 }

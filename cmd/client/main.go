@@ -38,7 +38,6 @@ func main() {
 
 	gophKeeperClient := pb.NewGophkeeperClient(conn)
 
-	//application := app.New()
 	appState := state.New()
 
 	vclient := vaultclient.New(appState, gophKeeperClient)
@@ -46,6 +45,31 @@ func main() {
 
 	loginVaultStorage := storage.NewLoginVaultStorage(vcrypt)
 	fileVaultStorage := storage.NewFileVaultStorage(vcrypt, vclient)
+
+	err = loginVaultStorage.LoadFromLocalFile("./data/site-login.db")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer func() {
+		err = loginVaultStorage.SaveToFile("./data/site-login.db")
+		if err != nil {
+			log.Println("error saved data to file", err)
+			return
+		}
+	}()
+	err = fileVaultStorage.LoadFromLocalFile("./data/file.db")
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	defer func() {
+		err = fileVaultStorage.SaveToFile("./data/file.db")
+		if err != nil {
+			log.Println("error saved data to file", err)
+			return
+		}
+	}()
 
 	vsync := vaultsync.New(
 		vcrypt,
