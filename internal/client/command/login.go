@@ -56,12 +56,12 @@ func (c *LoginCommand) Run(ctx context.Context, args []string) {
 		return
 	}
 
-	err = c.vsync.Sync()
-
-	if err != nil {
-		fmt.Println("Error first sync storage: ", err)
-		return
-	}
+	//err = c.vsync.Sync()
+	//
+	//if err != nil {
+	//	fmt.Println("Error first sync storage: ", err)
+	//	return
+	//}
 }
 
 func (c *LoginCommand) RunCheck(ctx context.Context, _ []string) {

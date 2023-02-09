@@ -419,7 +419,13 @@ func (s *FileVaultStorage) UploadFile(ctx context.Context, file *os.File) error 
 		return err
 	}
 
-	newM.Data = buffer.Bytes()
+	encryptedData, err := s.crypt.Encrypt(buffer.Bytes())
+
+	if err != nil {
+		return err
+	}
+
+	newM.Data = encryptedData
 
 	reader, writer := io.Pipe()
 	defer reader.Close()
@@ -467,9 +473,16 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, filePath
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
+	decryptedData, err := s.crypt.Decrypt(model.Data)
+
+	if err != nil {
+		return err
+	}
+
 	var data FileSecreteData
 
-	if err := gob.NewDecoder(bytes.NewReader(model.Data)).Decode(&data); err != nil {
+	err = gob.NewDecoder(bytes.NewReader(decryptedData)).Decode(&data)
+	if err != nil {
 		return err
 	}
 
