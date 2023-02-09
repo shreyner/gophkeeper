@@ -61,9 +61,10 @@ func (c *SiteLoginCommand) RunView(_ context.Context, _ []string) {
 
 	for _, model := range arr {
 		fmt.Printf(
-			"ID: %v, IsUpdate: %v, IsDeleted: %v, SiteURL: %v\n",
+			"ID: %v, IsNew: %v, IsUpdate: %v, IsDeleted: %v, SiteURL: %v\n",
 			model.ID,
-			model.IsUpdate && model.IsNew,
+			model.IsNew,
+			model.IsUpdate,
 			model.IsDelete,
 			model.GetSite(),
 		)

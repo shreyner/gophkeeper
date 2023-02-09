@@ -119,9 +119,8 @@ func (r *Repository) LoadUpdatedVaults(ctx context.Context, userID uuid.UUID, dt
 
 	rows, err := r.db.QueryContext(
 		ctx,
-		`select id, version from vaults where user_id = $1 and (id = any($2) or is_deleted = false);`,
+		`select id, version, is_deleted from vaults where user_id = $1;`,
 		userID,
-		vaultIDs,
 	)
 
 	if err != nil {
@@ -131,16 +130,19 @@ func (r *Repository) LoadUpdatedVaults(ctx context.Context, userID uuid.UUID, dt
 	defer rows.Close()
 
 	mapActionVersion := make(map[string]int)
+	mapActionIsDeleted := make(map[string]bool)
 
 	for rows.Next() {
 		var id string
 		var version int
+		var isDeleted bool
 
-		if err := rows.Scan(&id, &version); err != nil {
+		if err := rows.Scan(&id, &version, &isDeleted); err != nil {
 			return nil, err
 		}
 
 		mapActionVersion[id] = version
+		mapActionIsDeleted[id] = isDeleted
 	}
 
 	if rows.Err() != nil {
@@ -151,8 +153,15 @@ func (r *Repository) LoadUpdatedVaults(ctx context.Context, userID uuid.UUID, dt
 
 	for id, version := range mapActionVersion {
 		oldVersion, ok := mapVaultsVersions[id]
-		if !ok || version > oldVersion {
+		isDelete := mapActionIsDeleted[id]
+		if ok && isDelete {
 			needUpdatedIds = append(needUpdatedIds, id)
+			continue
+		}
+
+		if (!ok && !isDelete) || version > oldVersion {
+			needUpdatedIds = append(needUpdatedIds, id)
+			continue
 		}
 
 	}
