@@ -74,7 +74,7 @@ func (c *FileCommand) RunUpload(ctx context.Context, args []string) {
 
 func (c *FileCommand) RunDownload(ctx context.Context, args []string) {
 	if len(args) < 2 {
-		fmt.Println("incorrect login and password")
+		fmt.Println("incorrect ID and path")
 		return
 	}
 

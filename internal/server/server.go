@@ -8,6 +8,9 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"go.uber.org/zap"
+	"golang.org/x/net/context"
+
 	"github.com/shreyner/gophkeeper/internal/server/auth"
 	"github.com/shreyner/gophkeeper/internal/server/httphandlers"
 	interceptor_auth "github.com/shreyner/gophkeeper/internal/server/interceptor/auth"
@@ -19,8 +22,6 @@ import (
 	"github.com/shreyner/gophkeeper/internal/server/user"
 	"github.com/shreyner/gophkeeper/internal/server/vault"
 	pb "github.com/shreyner/gophkeeper/proto"
-	"go.uber.org/zap"
-	"golang.org/x/net/context"
 )
 
 var JWTTokenKey = []byte("123")
@@ -31,13 +32,15 @@ var S3MinioEndpoint = "localhost:9000"
 var S3MinioAccessKeyID = "minio_access_key"
 var S3MiniSecretAccessKey = "minio_secret_key"
 
+var DataBaseDSN = "postgres://postgres:postgres@localhost:5432/develop?sslmode=disable"
+
 func NewGophKeeperServer(logger *zap.Logger) error {
 	ctxBase := context.Background()
 
 	logger.Info("Start GophKeeper server...")
 
 	logger.Info("Connect to database...")
-	db, err := database.NewDataBase(ctxBase, "postgres://postgres:postgres@localhost:5432/develop?sslmode=disable")
+	db, err := database.NewDataBase(ctxBase, DataBaseDSN)
 	if err != nil {
 		logger.Error("Error connection to database", zap.Error(err))
 		return err

@@ -23,7 +23,7 @@ func NewCommands(
 	return []promptcmd.Command{
 		{
 			Command:     "login",
-			Description: "Authenticate user",
+			Description: "Authenticate or registration user",
 			Auth:        promptcmd.CommandAuthNot,
 			Run:         loginCommand.Run,
 		},

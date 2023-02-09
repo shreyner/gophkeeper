@@ -339,7 +339,12 @@ func (s *LoginVaultStorage) Create(data *LoginSecreteData, siteURL string) error
 		return err
 	}
 
-	newM.Data = buffer.Bytes()
+	encryptedData, err := s.crypt.Encrypt(buffer.Bytes())
+	if err != nil {
+		return err
+	}
+
+	newM.Data = encryptedData
 	newM.SetSite(siteURL)
 
 	s.storage[newM.ID] = newM
@@ -374,9 +379,15 @@ func (s *LoginVaultStorage) ViewDataByID(ID uint32) (*LoginSecreteData, error) {
 		return nil, vaultdata.ErrNotFoundVaultInStorage
 	}
 
+	decryptedData, err := s.crypt.Decrypt(model.Data)
+
+	if err != nil {
+		return nil, err
+	}
+
 	var data LoginSecreteData
 
-	if err := gob.NewDecoder(bytes.NewReader(model.Data)).Decode(&data); err != nil {
+	if err := gob.NewDecoder(bytes.NewReader(decryptedData)).Decode(&data); err != nil {
 		return nil, err
 	}
 
@@ -421,7 +432,13 @@ func (s *LoginVaultStorage) UpdateByID(ID uint32, login, password string) error 
 		return err
 	}
 
-	model.Data = buffer.Bytes()
+	encrypted, err := s.crypt.Encrypt(buffer.Bytes())
+
+	if err != nil {
+		return err
+	}
+
+	model.Data = encrypted
 
 	model.IsUpdate = false
 
