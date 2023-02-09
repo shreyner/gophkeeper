@@ -286,6 +286,7 @@ func (s *LoginVaultStorage) UpdateAfterSyncByID(model vaultsync.DataSyncer, exte
 
 	siteLoginModel.ExternalID = externalID
 	siteLoginModel.Version = version
+	siteLoginModel.IsNew = false
 	s.indexIDAndExternalID[externalID] = ID
 
 	return nil

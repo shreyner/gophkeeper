@@ -406,6 +406,7 @@ func (s *FileVaultStorage) UpdateDataStorage(externalID string, version int, dat
 
 	model.Data = vs.Data
 	model.MetaData = vs.MetaData
+	model.IsNew = false
 	model.Version = version
 
 	return nil
