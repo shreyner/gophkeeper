@@ -9,6 +9,7 @@ import (
 	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/jaevor/go-nanoid"
 	"github.com/minio/minio-go/v7"
+	"github.com/shreyner/gophkeeper/internal/server/pgk/contenttype"
 	"go.uber.org/zap"
 
 	"github.com/shreyner/gophkeeper/internal/server/middlewares"
@@ -34,7 +35,7 @@ func NewRouter(
 	r.Use(middlewares.Authenticator(log, stokenService))
 
 	r.
-		With(chiMiddleware.AllowContentType("application/octet-stream")).
+		With(chiMiddleware.AllowContentType(contenttype.ContentTypeBinary)).
 		Put("/upload", func(wr http.ResponseWriter, r *http.Request) {
 			_, ok := middlewares.GetTokenDataCtx(r.Context())
 
@@ -59,12 +60,13 @@ func NewRouter(
 			)
 
 			if err != nil {
+				log.Error("can't upload object to s3", zap.Error(err))
 				http.Error(wr, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				return
 			}
 
 			_, _ = fmt.Fprintln(wr, uploadFileName.Location)
-			wr.WriteHeader(200)
+			wr.WriteHeader(http.StatusOK)
 		})
 
 	return r
