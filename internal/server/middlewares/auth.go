@@ -22,7 +22,7 @@ func GetTokenDataCtx(ctx context.Context) (*stoken.Data, bool) {
 	return v, ok
 }
 
-func Authenticator(log *zap.Logger, stokenService *stoken.Service) func(next http.Handler) http.Handler {
+func Authenticator(log *zap.Logger, stokenService stoken.JWTService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(wr http.ResponseWriter, r *http.Request) {
 			authToken := r.Header.Get(HeaderAuthorizationKey)

@@ -8,6 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	_ JWTService = (*Service)(nil)
+)
+
 type Data struct {
 	ID uuid.UUID // User uuid
 }

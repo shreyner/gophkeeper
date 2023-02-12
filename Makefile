@@ -44,3 +44,7 @@ install-tools: .install-linter .install-migrate .install-swag
 proto: .install-proto
 	$(PROJECT_BIN)/protoc-gen-go --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/gophkeeper.proto
 
+.PHONY: .install-mockgen
+.install-mockgen:
+	[ -f $(PROJECT_BIN)/mockgen ] || GOBIN=$(pwd)/bin go install github.com/golang/mock/mockgen@v1.6.0
+
