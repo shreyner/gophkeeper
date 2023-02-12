@@ -14,14 +14,14 @@ import (
 
 type VaultSync struct {
 	vcrypt  *vaultcrypt.VaultCrypt
-	vclient *vaultclient.Client
+	vclient vaultclient.VClient
 
 	storages map[string]StorageSyncer
 }
 
 func New(
 	vcrypt *vaultcrypt.VaultCrypt,
-	vclient *vaultclient.Client,
+	vclient vaultclient.VClient,
 	storages []StorageSyncer,
 ) *VaultSync {
 	s := VaultSync{

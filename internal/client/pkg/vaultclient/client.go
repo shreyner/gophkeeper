@@ -18,6 +18,10 @@ import (
 
 var ServerUploaderHost = "http://localhost:3280"
 
+var (
+	_ VClient = (*Client)(nil)
+)
+
 type Client struct {
 	appState vaultdata.State
 
