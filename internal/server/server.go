@@ -8,6 +8,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/shreyner/gophkeeper/internal/server/config"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 
@@ -24,23 +25,13 @@ import (
 	pb "github.com/shreyner/gophkeeper/proto"
 )
 
-var JWTTokenKey = []byte("123")
-var GRPCServerPort = "3200"
-var HTTPServerPort = "3280"
-
-var S3MinioEndpoint = "localhost:9000"
-var S3MinioAccessKeyID = "minio_access_key"
-var S3MiniSecretAccessKey = "minio_secret_key"
-
-var DataBaseDSN = "postgres://postgres:postgres@localhost:5432/develop?sslmode=disable"
-
-func NewGophKeeperServer(logger *zap.Logger) error {
+func NewGophKeeperServer(logger *zap.Logger, cfg *config.Config) error {
 	ctxBase := context.Background()
 
 	logger.Info("Start GophKeeper server...")
 
 	logger.Info("Connect to database...")
-	db, err := database.NewDataBase(ctxBase, DataBaseDSN)
+	db, err := database.NewDataBase(ctxBase, cfg.DBDSN)
 	if err != nil {
 		logger.Error("Error connection to database", zap.Error(err))
 		return err
@@ -48,9 +39,9 @@ func NewGophKeeperServer(logger *zap.Logger) error {
 
 	logger.Info("Initialize S3 Minio client ...")
 	s3minioCLient, err := minio.New(
-		S3MinioEndpoint,
+		cfg.S3MinioEndpoint,
 		&minio.Options{
-			Creds: credentials.NewStaticV4(S3MinioAccessKeyID, S3MiniSecretAccessKey, ""),
+			Creds: credentials.NewStaticV4(cfg.S3MinioAccessKeyID, cfg.S3MinioSecretAccessKey, ""),
 		},
 	)
 
@@ -63,7 +54,7 @@ func NewGophKeeperServer(logger *zap.Logger) error {
 	vaultRepository := vault.NewRepository(db)
 
 	vaultService := vault.NewService(vaultRepository)
-	stokenService := stoken.NewService(JWTTokenKey)
+	stokenService := stoken.NewService([]byte(cfg.JWTSign))
 	userService := user.NewService(userRepository)
 	authService := auth.NewService(userService)
 
@@ -73,14 +64,14 @@ func NewGophKeeperServer(logger *zap.Logger) error {
 	logger.Info("Create http server...")
 	hserver := httpserver.NewHTTPServer(
 		logger,
-		fmt.Sprintf("0.0.0.0:%v", HTTPServerPort),
+		fmt.Sprintf("0.0.0.0:%v", cfg.Port),
 		router,
 	)
 
 	logger.Info("Create grpc server...")
 	gserver, err := grcserver.NewGRPCServer(
 		logger,
-		fmt.Sprintf(":%s", GRPCServerPort),
+		fmt.Sprintf(":%v", cfg.GRPCServerPort),
 		interceptor_auth.Interceptor(stokenService),
 	)
 
@@ -97,7 +88,7 @@ func NewGophKeeperServer(logger *zap.Logger) error {
 	_ = hserver.Start()
 	_ = gserver.Start()
 
-	interrupt := make(chan os.Signal)
+	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 
 	logger.Info("Listen interrupt or errors from service ...")
