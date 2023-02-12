@@ -1,3 +1,4 @@
+//go:generate ./bin/mockgen -source=./interfaces.go -destination=./mock/storage.go -package=vaultsync
 package vaultsync
 
 //type StorageID uint32
