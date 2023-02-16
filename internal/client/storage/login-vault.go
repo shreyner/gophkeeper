@@ -231,11 +231,11 @@ func (s *LoginVaultStorage) LoadForSync() ([]vaultsync.DataSyncer, error) {
 	return arr, nil
 }
 
-func (s *LoginVaultStorage) SetConflictFlag(ID uint32) error {
+func (s *LoginVaultStorage) SetConflictFlag(id uint32) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
@@ -276,9 +276,9 @@ func (s *LoginVaultStorage) DeserializeFromVault(dst []byte) (interface{}, error
 }
 
 func (s *LoginVaultStorage) UpdateAfterSyncByID(model vaultsync.DataSyncer, externalID string, version int) error {
-	ID := model.GetID()
+	id := model.GetID()
 
-	siteLoginModel, ok := s.storage[ID]
+	siteLoginModel, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
@@ -287,22 +287,22 @@ func (s *LoginVaultStorage) UpdateAfterSyncByID(model vaultsync.DataSyncer, exte
 	siteLoginModel.ExternalID = externalID
 	siteLoginModel.Version = version
 	siteLoginModel.IsNew = false
-	s.indexIDAndExternalID[externalID] = ID
+	s.indexIDAndExternalID[externalID] = id
 
 	return nil
 }
 
 func (s *LoginVaultStorage) ConfirmDeleteAfterSyncByID(model vaultsync.DataSyncer) error {
-	ID := model.GetID()
+	id := model.GetID()
 
-	_, ok := s.storage[ID]
+	_, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
 	delete(s.indexIDAndExternalID, model.GetVaultID())
-	delete(s.storage, ID)
+	delete(s.storage, id)
 
 	return nil
 }
@@ -342,13 +342,13 @@ func (s *LoginVaultStorage) UpdateDataStorage(externalID string, version int, da
 		return ErrInvalidType
 	}
 
-	ID, ok := s.indexIDAndExternalID[externalID]
+	id, ok := s.indexIDAndExternalID[externalID]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		delete(s.indexIDAndExternalID, externalID)
@@ -374,13 +374,13 @@ func (s *LoginVaultStorage) UpdateDataStorage(externalID string, version int, da
 }
 
 func (s *LoginVaultStorage) DeleteDataStorage(externalID string, version int) error {
-	ID, ok := s.indexIDAndExternalID[externalID]
+	id, ok := s.indexIDAndExternalID[externalID]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		delete(s.indexIDAndExternalID, externalID)
@@ -399,7 +399,7 @@ func (s *LoginVaultStorage) DeleteDataStorage(externalID string, version int) er
 	}
 
 	delete(s.indexIDAndExternalID, externalID)
-	delete(s.storage, ID)
+	delete(s.storage, id)
 
 	return nil
 }
@@ -450,11 +450,11 @@ func (s *LoginVaultStorage) GetAll() []*LoginVaultModel {
 	return arr
 }
 
-func (s *LoginVaultStorage) ViewDataByID(ID uint32) (*LoginSecreteData, error) {
+func (s *LoginVaultStorage) ViewDataByID(id uint32) (*LoginSecreteData, error) {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 	if !ok || model.IsDelete {
 		return nil, vaultdata.ErrNotFoundVaultInStorage
 	}
@@ -474,11 +474,11 @@ func (s *LoginVaultStorage) ViewDataByID(ID uint32) (*LoginSecreteData, error) {
 	return &data, nil
 }
 
-func (s *LoginVaultStorage) DeleteByID(ID uint32) error {
+func (s *LoginVaultStorage) DeleteByID(id uint32) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
@@ -490,11 +490,11 @@ func (s *LoginVaultStorage) DeleteByID(ID uint32) error {
 	return nil
 }
 
-func (s *LoginVaultStorage) UpdateByID(ID uint32, login, password string) error {
+func (s *LoginVaultStorage) UpdateByID(id uint32, login, password string) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok || model.IsDelete {
 		return vaultdata.ErrNotFoundVaultInStorage

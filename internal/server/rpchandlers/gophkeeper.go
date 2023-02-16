@@ -197,14 +197,14 @@ func (s *GophkeeperServer) VaultSync(ctx context.Context, in *pb.VaultSyncReques
 	vaultVersions := make([]vault.VaultVersionDTO, len(in.VaultVersions))
 
 	for i, vaultVersion := range in.VaultVersions {
-		ID, err := uuid.Parse(vaultVersion.Id)
+		id, err := uuid.Parse(vaultVersion.Id)
 
 		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, "invalid vault ID")
+			return nil, status.Error(codes.InvalidArgument, "invalid vault id")
 		}
 
 		v := vault.VaultVersionDTO{
-			ID:      ID,
+			ID:      id,
 			Version: int(vaultVersion.Version),
 		}
 

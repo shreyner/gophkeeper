@@ -165,7 +165,7 @@ func (s *Client) VaultCreate(ctx context.Context, encryptedVault []byte, s3URL s
 	return &d, nil
 }
 
-func (s *Client) VaultUpdate(ctx context.Context, ID string, version int, encryptedVault []byte) (*vaultdata.VaultClientSyncResult, error) {
+func (s *Client) VaultUpdate(ctx context.Context, id string, version int, encryptedVault []byte) (*vaultdata.VaultClientSyncResult, error) {
 	if s.appState.GetUserToken() == "" {
 		return nil, ErrNotAuth
 	}
@@ -173,7 +173,7 @@ func (s *Client) VaultUpdate(ctx context.Context, ID string, version int, encryp
 	ctxWithMetadata := metadata.NewOutgoingContext(ctx, s.metadata)
 
 	request := proto.VaultUpdateRequest{
-		Id:      ID,
+		Id:      id,
 		Vault:   encryptedVault,
 		Version: int32(version),
 	}
@@ -188,14 +188,14 @@ func (s *Client) VaultUpdate(ctx context.Context, ID string, version int, encryp
 	}
 
 	d := vaultdata.VaultClientSyncResult{
-		ID:      ID,
+		ID:      id,
 		Version: int(response.Version),
 	}
 
 	return &d, nil
 }
 
-func (s *Client) VaultDelete(ctx context.Context, ID string, version int) error {
+func (s *Client) VaultDelete(ctx context.Context, id string, version int) error {
 	if s.appState.GetUserToken() == "" {
 		return ErrNotAuth
 	}
@@ -203,7 +203,7 @@ func (s *Client) VaultDelete(ctx context.Context, ID string, version int) error 
 	ctxWithMetadata := metadata.NewOutgoingContext(ctx, s.metadata)
 
 	request := proto.VaultDeleteRequest{
-		Id:      ID,
+		Id:      id,
 		Version: int32(version),
 	}
 
