@@ -13,8 +13,8 @@ type VClient interface {
 	Check(ctx context.Context) error
 	VaultSync(ctx context.Context, vaultSync []vaultdata.VaultSyncVersion) ([]vaultdata.VaultSyncData, error)
 	VaultCreate(ctx context.Context, encryptedVault []byte, s3URL string) (*vaultdata.VaultClientSyncResult, error)
-	VaultUpdate(ctx context.Context, ID string, version int, encryptedVault []byte) (*vaultdata.VaultClientSyncResult, error)
-	VaultDelete(ctx context.Context, ID string, version int) error
+	VaultUpdate(ctx context.Context, id string, version int, encryptedVault []byte) (*vaultdata.VaultClientSyncResult, error)
+	VaultDelete(ctx context.Context, id string, version int) error
 	VaultUpload(ctx context.Context, r io.Reader) (string, error)
 	VaultDownload(ctx context.Context, url string) (io.ReadCloser, error)
 }

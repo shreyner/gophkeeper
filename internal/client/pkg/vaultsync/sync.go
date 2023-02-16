@@ -336,9 +336,9 @@ func (s *VaultSync) Sync() error {
 
 	vaultsVersionForRequest := make([]vaultdata.VaultSyncVersion, 0, len(localVaults))
 
-	for ID, v := range localVaults {
+	for id, v := range localVaults {
 		d := vaultdata.VaultSyncVersion{
-			ID:      ID,
+			ID:      id,
 			Version: v.vault.GetVersion(),
 		}
 		vaultsVersionForRequest = append(vaultsVersionForRequest, d)
@@ -363,7 +363,7 @@ func (s *VaultSync) Sync() error {
 		}
 
 		if responseData.Version > vaultCurrent.vault.GetVersion() && vaultCurrent.vault.GetIsUpdate() {
-			fmt.Printf("Vault Type: %v, ID: %v conflict merge. Please resolve conflict for vault\n", vaultCurrent.typeVaultStorage, vaultCurrent.vault.GetID())
+			fmt.Printf("Vault Type: %v, id: %v conflict merge. Please resolve conflict for vault\n", vaultCurrent.typeVaultStorage, vaultCurrent.vault.GetID())
 			storage, _ := s.storages[vaultCurrent.typeVaultStorage]
 			err = storage.SetConflictFlag(vaultCurrent.vault.GetID())
 			if err != nil {

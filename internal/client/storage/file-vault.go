@@ -266,11 +266,11 @@ func (s *FileVaultStorage) LoadForSync() ([]vaultsync.DataSyncer, error) {
 	return arr, nil
 }
 
-func (s *FileVaultStorage) SetConflictFlag(ID uint32) error {
+func (s *FileVaultStorage) SetConflictFlag(id uint32) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
@@ -311,9 +311,9 @@ func (s *FileVaultStorage) DeserializeFromVault(dst []byte) (interface{}, error)
 }
 
 func (s *FileVaultStorage) UpdateAfterSyncByID(model vaultsync.DataSyncer, externalID string, version int) error {
-	ID := model.GetID()
+	id := model.GetID()
 
-	siteLoginModel, ok := s.storage[ID]
+	siteLoginModel, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
@@ -321,22 +321,22 @@ func (s *FileVaultStorage) UpdateAfterSyncByID(model vaultsync.DataSyncer, exter
 
 	siteLoginModel.ExternalID = externalID
 	siteLoginModel.Version = version
-	s.indexIDAndExternalID[externalID] = ID
+	s.indexIDAndExternalID[externalID] = id
 
 	return nil
 }
 
 func (s *FileVaultStorage) ConfirmDeleteAfterSyncByID(model vaultsync.DataSyncer) error {
-	ID := model.GetID()
+	id := model.GetID()
 
-	_, ok := s.storage[ID]
+	_, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
 	delete(s.indexIDAndExternalID, model.GetVaultID())
-	delete(s.storage, ID)
+	delete(s.storage, id)
 
 	return nil
 }
@@ -380,13 +380,13 @@ func (s *FileVaultStorage) UpdateDataStorage(externalID string, version int, dat
 		return ErrInvalidType
 	}
 
-	ID, ok := s.indexIDAndExternalID[externalID]
+	id, ok := s.indexIDAndExternalID[externalID]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		delete(s.indexIDAndExternalID, externalID)
@@ -413,13 +413,13 @@ func (s *FileVaultStorage) UpdateDataStorage(externalID string, version int, dat
 }
 
 func (s *FileVaultStorage) DeleteDataStorage(externalID string, version int) error {
-	ID, ok := s.indexIDAndExternalID[externalID]
+	id, ok := s.indexIDAndExternalID[externalID]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
 	}
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		delete(s.indexIDAndExternalID, externalID)
@@ -438,7 +438,7 @@ func (s *FileVaultStorage) DeleteDataStorage(externalID string, version int) err
 	}
 
 	delete(s.indexIDAndExternalID, externalID)
-	delete(s.storage, ID)
+	delete(s.storage, id)
 
 	return nil
 }
@@ -539,11 +539,11 @@ func (s *FileVaultStorage) UploadFile(ctx context.Context, file *os.File) error 
 	return nil
 }
 
-func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, filePath string) error {
+func (s *FileVaultStorage) DownloadFile(ctx context.Context, id uint32, filePath string) error {
 	s.mux.RLock()
 	defer s.mux.RUnlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok || model.IsDelete {
 		return vaultdata.ErrNotFoundVaultInStorage
@@ -598,11 +598,11 @@ func (s *FileVaultStorage) DownloadFile(ctx context.Context, ID uint32, filePath
 	return nil
 }
 
-func (s *FileVaultStorage) DeleteFile(_ context.Context, ID uint32) error {
+func (s *FileVaultStorage) DeleteFile(_ context.Context, id uint32) error {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
-	model, ok := s.storage[ID]
+	model, ok := s.storage[id]
 
 	if !ok {
 		return vaultdata.ErrNotFoundVaultInStorage
