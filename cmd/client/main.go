@@ -1,13 +1,13 @@
 package main
 
 import (
+	"crypto/x509"
 	"fmt"
 	"log"
+	"os"
+	"path"
 
 	"github.com/c-bata/go-prompt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
 	"github.com/shreyner/gophkeeper/internal/client/command"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/promptcmd"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultclient"
@@ -16,6 +16,8 @@ import (
 	"github.com/shreyner/gophkeeper/internal/client/state"
 	"github.com/shreyner/gophkeeper/internal/client/storage"
 	pb "github.com/shreyner/gophkeeper/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -27,7 +29,20 @@ var (
 func main() {
 	fmt.Printf("Build version: %v\nBuild date: %v\nBuild commit: %v\n", buildVersion, buildDate, buildCommit)
 
-	conn, err := grpc.Dial(":3200", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	certFile, err := os.ReadFile(path.Join("cert", "server-cert.pem"))
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	certPool := x509.NewCertPool()
+	if ok := certPool.AppendCertsFromPEM(certFile); !ok {
+		log.Fatal("can't read cert file")
+		return
+	}
+
+	creds := credentials.NewClientTLSFromCert(certPool, "example.com")
+	conn, err := grpc.Dial(":3200", grpc.WithTransportCredentials(creds))
 
 	if err != nil {
 		log.Fatal(err)

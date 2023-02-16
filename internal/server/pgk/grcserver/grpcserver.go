@@ -2,11 +2,14 @@ package grcserver
 
 import (
 	"context"
+	"crypto/tls"
 	"net"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
+	"github.com/shreyner/gophkeeper/internal/server/config"
 	"github.com/shreyner/gophkeeper/pkg/server"
 )
 
@@ -22,12 +25,20 @@ type GRPCServer struct {
 	listen net.Listener
 }
 
-func NewGRPCServer(log *zap.Logger, address string, interceptors ...grpc.UnaryServerInterceptor) (*GRPCServer, error) {
+func NewGRPCServer(log *zap.Logger, cfg *config.Config, address string, interceptors ...grpc.UnaryServerInterceptor) (*GRPCServer, error) {
+	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KetFile))
+
+	if err != nil {
+		return nil, err
+	}
+
+	creds := credentials.NewServerTLSFromCert(&cert)
+
 	grcServer := GRPCServer{
 		log:    log,
 		errors: make(chan error),
 
-		Server: grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors...)),
+		Server: grpc.NewServer(grpc.Creds(creds), grpc.ChainUnaryInterceptor(interceptors...)),
 	}
 
 	listen, err := net.Listen("tcp", address)

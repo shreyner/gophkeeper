@@ -2,8 +2,10 @@ package httpserver
 
 import (
 	"context"
+	"crypto/tls"
 	"net/http"
 
+	"github.com/shreyner/gophkeeper/internal/server/config"
 	"go.uber.org/zap"
 
 	"github.com/shreyner/gophkeeper/pkg/server"
@@ -19,15 +21,25 @@ type HTTPServer struct {
 	server http.Server
 }
 
-func NewHTTPServer(log *zap.Logger, address string, router http.Handler) *HTTPServer {
+func NewHTTPServer(log *zap.Logger, cfg *config.Config, address string, router http.Handler) (*HTTPServer, error) {
+	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KetFile))
+
+	if err != nil {
+		return nil, err
+	}
+
+	tlcCfg := tls.Config{}
+	tlcCfg.Certificates = append(tlcCfg.Certificates, cert)
+
 	return &HTTPServer{
 		server: http.Server{
-			Addr:    address,
-			Handler: router,
+			Addr:      address,
+			Handler:   router,
+			TLSConfig: &tlcCfg,
 		},
 		log:    log,
 		errors: make(chan error),
-	}
+	}, nil
 }
 
 func (s *HTTPServer) Start() error {
@@ -35,7 +47,7 @@ func (s *HTTPServer) Start() error {
 		s.log.Info("Http HTTPServer listening on ", zap.String("addr", s.server.Addr))
 		defer close(s.errors)
 
-		s.errors <- s.server.ListenAndServe()
+		s.errors <- s.server.ListenAndServeTLS("", "")
 	}()
 
 	return nil

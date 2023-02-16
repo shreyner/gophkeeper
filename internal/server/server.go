@@ -62,19 +62,24 @@ func NewGophKeeperServer(logger *zap.Logger, cfg *config.Config) error {
 	router := httphandlers.NewRouter(logger, stokenService, s3minioCLient)
 
 	logger.Info("Create http server...")
-	hserver := httpserver.NewHTTPServer(
+	hserver, err := httpserver.NewHTTPServer(
 		logger,
+		cfg,
 		fmt.Sprintf("0.0.0.0:%v", cfg.Port),
 		router,
 	)
+	if err != nil {
+		logger.Error("Can't start https server", zap.Error(err))
+		return err
+	}
 
 	logger.Info("Create grpc server...")
 	gserver, err := grcserver.NewGRPCServer(
 		logger,
+		cfg,
 		fmt.Sprintf(":%v", cfg.GRPCServerPort),
 		interceptor_auth.Interceptor(stokenService),
 	)
-
 	if err != nil {
 		logger.Error("Can't start grpc server", zap.Error(err))
 		return err

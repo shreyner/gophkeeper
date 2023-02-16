@@ -128,4 +128,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-./bin
+# Binary
+bin/
+
+# Cert local test files
+cert/*.pem
+cert/*.srl

@@ -7,6 +7,9 @@ type Config struct {
 	GRPCServerPort int    `env:"GRPC_PORT" envDefault:"3200"`
 	Port           int    `env:"PORT" envDefault:"3280"`
 
+	CertFile string `env:"CERT_FILE,file" envDefault:"./cert/server-cert.pem"`
+	KetFile  string `env:"KEY_FILE,file" envDefault:"./cert/server-key.pem"`
+
 	S3MinioEndpoint        string `env:"S3_MINIO_ENDPOINT" envDefault:"localhost:9000"`
 	S3MinioAccessKeyID     string `env:"S3_MINIO_ACCESS_KEY_ID" envDefault:"minio_access_key"`
 	S3MinioSecretAccessKey string `env:"S3_MINIO_SECRET_ACCESS_KEY" envDefault:"minio_secret_key"`

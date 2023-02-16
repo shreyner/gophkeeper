@@ -69,5 +69,12 @@ func NewRouter(
 			wr.WriteHeader(http.StatusOK)
 		})
 
+	r.Get("/", func(w http.ResponseWriter, wr *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.WriteHeader(http.StatusOK)
+
+		fmt.Fprintln(w, "Hello world")
+	})
+
 	return r
 }
