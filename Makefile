@@ -48,3 +48,7 @@ proto: .install-proto
 .install-mockgen:
 	[ -f $(PROJECT_BIN)/mockgen ] || GOBIN=$(pwd)/bin go install github.com/golang/mock/mockgen@v1.6.0
 
+.PHONY: cert
+cert:
+	cd ./cert && ./generate_tls.sh
+
