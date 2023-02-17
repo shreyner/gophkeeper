@@ -8,7 +8,7 @@ type Config struct {
 	Port           int    `env:"PORT" envDefault:"3280"`
 
 	CertFile string `env:"CERT_FILE,file" envDefault:"./cert/server-cert.pem"`
-	KetFile  string `env:"KEY_FILE,file" envDefault:"./cert/server-key.pem"`
+	KeyFile  string `env:"KEY_FILE,file" envDefault:"./cert/server-key.pem"`
 
 	S3MinioEndpoint        string `env:"S3_MINIO_ENDPOINT" envDefault:"localhost:9000"`
 	S3MinioAccessKeyID     string `env:"S3_MINIO_ACCESS_KEY_ID" envDefault:"minio_access_key"`

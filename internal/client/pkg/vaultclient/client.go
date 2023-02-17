@@ -1,6 +1,7 @@
 package vaultclient
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"github.com/shreyner/gophkeeper/internal/client/config"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -16,23 +18,33 @@ import (
 	"github.com/shreyner/gophkeeper/proto"
 )
 
-var ServerUploaderHost = "http://localhost:3280"
-
 var (
 	_ VClient = (*Client)(nil)
 )
 
 type Client struct {
-	appState vaultdata.State
+	appState   vaultdata.State
+	hostREST   string
+	httpClient *http.Client
 
 	client   proto.GophkeeperClient
 	metadata metadata.MD
 }
 
-func New(appState vaultdata.State, client proto.GophkeeperClient) *Client {
+func New(cfg *config.Config, appState vaultdata.State, client proto.GophkeeperClient) *Client {
+	tr := http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: cfg.Insecure},
+	}
+
+	httpClient := http.Client{
+		Transport: &tr,
+	}
+
 	s := Client{
-		appState: appState,
-		client:   client,
+		appState:   appState,
+		client:     client,
+		hostREST:   cfg.HostREST,
+		httpClient: &httpClient,
 	}
 
 	s.metadata = metadata.New(map[string]string{})
@@ -230,7 +242,7 @@ func (s *Client) VaultUpload(ctx context.Context, r io.Reader) (string, error) {
 	request, err := http.NewRequestWithContext(
 		ctxWithTimeout,
 		http.MethodPut,
-		fmt.Sprintf("%s/upload", ServerUploaderHost),
+		fmt.Sprintf("%s/upload", s.hostREST),
 		r,
 	)
 
@@ -241,7 +253,7 @@ func (s *Client) VaultUpload(ctx context.Context, r io.Reader) (string, error) {
 	request.Header.Set("Authorization", s.appState.GetUserToken())
 	request.Header.Set("Content-Type", "application/octet-stream")
 
-	response, err := http.DefaultClient.Do(request)
+	response, err := s.httpClient.Do(request)
 
 	if err != nil {
 		return "", err
