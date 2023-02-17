@@ -22,7 +22,7 @@ type HTTPServer struct {
 }
 
 func NewHTTPServer(log *zap.Logger, cfg *config.Config, address string, router http.Handler) (*HTTPServer, error) {
-	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KetFile))
+	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KeyFile))
 
 	if err != nil {
 		return nil, err

@@ -4,11 +4,14 @@ import (
 	"crypto/x509"
 	"fmt"
 	"log"
-	"os"
 	"path"
 
 	"github.com/c-bata/go-prompt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+
 	"github.com/shreyner/gophkeeper/internal/client/command"
+	"github.com/shreyner/gophkeeper/internal/client/config"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/promptcmd"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultclient"
 	"github.com/shreyner/gophkeeper/internal/client/pkg/vaultcrypt"
@@ -16,8 +19,6 @@ import (
 	"github.com/shreyner/gophkeeper/internal/client/state"
 	"github.com/shreyner/gophkeeper/internal/client/storage"
 	pb "github.com/shreyner/gophkeeper/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 var (
@@ -29,20 +30,20 @@ var (
 func main() {
 	fmt.Printf("Build version: %v\nBuild date: %v\nBuild commit: %v\n", buildVersion, buildDate, buildCommit)
 
-	certFile, err := os.ReadFile(path.Join("cert", "server-cert.pem"))
-	if err != nil {
+	cfg := config.New()
+	if err := cfg.Parse(); err != nil {
 		log.Fatal(err)
 		return
 	}
 
 	certPool := x509.NewCertPool()
-	if ok := certPool.AppendCertsFromPEM(certFile); !ok {
+	if ok := certPool.AppendCertsFromPEM([]byte(cfg.CertFile)); !ok {
 		log.Fatal("can't read cert file")
 		return
 	}
 
-	creds := credentials.NewClientTLSFromCert(certPool, "example.com")
-	conn, err := grpc.Dial(":3200", grpc.WithTransportCredentials(creds))
+	creds := credentials.NewClientTLSFromCert(certPool, cfg.ServerName)
+	conn, err := grpc.Dial(cfg.HostGRPC, grpc.WithTransportCredentials(creds))
 
 	if err != nil {
 		log.Fatal(err)
@@ -55,31 +56,31 @@ func main() {
 
 	appState := state.New()
 
-	vclient := vaultclient.New(appState, gophKeeperClient)
+	vclient := vaultclient.New(cfg, appState, gophKeeperClient)
 	vcrypt := vaultcrypt.New()
 
 	loginVaultStorage := storage.NewLoginVaultStorage(vcrypt)
 	fileVaultStorage := storage.NewFileVaultStorage(vcrypt, vclient)
 
-	err = loginVaultStorage.LoadFromLocalFile("./data/site-login.db")
+	err = loginVaultStorage.LoadFromLocalFile(path.Join(cfg.DataFolder, "site-login.db"))
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	defer func() {
-		err = loginVaultStorage.SaveToFile("./data/site-login.db")
+		err = loginVaultStorage.SaveToFile(path.Join(cfg.DataFolder, "site-login.db"))
 		if err != nil {
 			log.Println("error saved data to file", err)
 			return
 		}
 	}()
-	err = fileVaultStorage.LoadFromLocalFile("./data/file.db")
+	err = fileVaultStorage.LoadFromLocalFile(path.Join(cfg.DataFolder, "file.db"))
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	defer func() {
-		err = fileVaultStorage.SaveToFile("./data/file.db")
+		err = fileVaultStorage.SaveToFile(path.Join(cfg.DataFolder, "file.db"))
 		if err != nil {
 			log.Println("error saved data to file", err)
 			return

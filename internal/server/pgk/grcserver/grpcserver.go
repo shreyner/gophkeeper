@@ -26,7 +26,7 @@ type GRPCServer struct {
 }
 
 func NewGRPCServer(log *zap.Logger, cfg *config.Config, address string, interceptors ...grpc.UnaryServerInterceptor) (*GRPCServer, error) {
-	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KetFile))
+	cert, err := tls.X509KeyPair([]byte(cfg.CertFile), []byte(cfg.KeyFile))
 
 	if err != nil {
 		return nil, err
